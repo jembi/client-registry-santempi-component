@@ -51,7 +51,7 @@ Next, declare the `santedb-mpi` service , this service will host the the actual 
     image: santesuite/santedb-mpi:latest
     container_name: santedb-mpi
     environment:
-      - SDB_FEATURE=LOG;DATA_POLICY;AUDIT_REPO;ADO;PUBSUB_ADO;RAMCACHE;SEC;SWAGGER;OPENID;FHIR;FHIR_AUDIT;HL7;HDSI;AMI;BIS;MDM;MATCHING;IHE_PIXM;IHE_PDQM;IHE_PMIR;IHE_PIX;IHE_PDQ
+      - SDB_FEATURE=LOG;DATA_POLICY;AUDIT_REPO;ADO;PUBSUB_ADO;RAMCACHE;SEC;SWAGGER;OPENID;FHIR;HL7;HDSI;AMI;BIS;MDM;MATCHING;IHE_PIXM;IHE_PDQM;IHE_PMIR;IHE_PIX;IHE_PDQ
       - SDB_HL7_AUTHENTICATION=Msh8
       - SDB_MATCHING_MODE=WEIGHTED
       - SDB_MDM_RESOURCE=Patient
@@ -73,8 +73,8 @@ Next, declare the `santedb-mpi` service , this service will host the the actual 
 This section of the file:
 
 * Creates a service named `santedb-mpi` in the docker environment
-* Enables feature via the `SDB_FEATURE` environment variable (for reference see: [feature-configuration.md](installation/santedb-server/docker-containers/feature-configuration.md "mention")
-* Instructs the iCDR to enable [master-data-storage.md](../santedb/data-storage-patterns/master-data-storage.md "mention") for `Patient` resources
+* Enables feature via the `SDB_FEATURE` environment variable (for reference see: [feature-configuration.md](https://help.santesuite.org/installation/installation/santedb-server/installation-using-appliances/docker-containers/feature-configuration)
+* Instructs the iCDR to enable [master-data-storage.md](https://help.santesuite.org/santedb/data-storage-patterns/master-data-storage) for `Patient` resources
 * Connects the main database to `santedb` on the `db` container.
 * Connects the audit database to `auditdb` on the db container
 * Instructs the iCDR to `hide` any data which is tagged with a privacy policy (other options are `redact`, `audit, none`
@@ -109,6 +109,6 @@ docker compose -f docker-compose.yml up
 
 This will start the SanteDB iCDR (running SanteMPI), the web access gateway and database. Initial startup of the SanteMPI container can take upwards of 5 minutes. You will see a log entry which indicates that startup was successful after this time.
 
-## Configure the Web Access Gateway
+## Complete the Tutorial
 
-You can now configure the web-access gateway, the [Configuring the Web Access Gateway ](https://help.santesuite.org/installation/installation/disconnected-gateway/installing-web-access-gateway)article contains detailed instructions on how this is performed.
+This readme is intended to provide a quick-start for using the files in this repository. The complete Quick-Start tutorial can be found on the [SanteDB Wiki - Quick Start](https://help.santesuite.org/installation/quick-start-guide)
