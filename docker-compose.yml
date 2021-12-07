@@ -1,0 +1,92 @@
+version: "3.3"
+
+services:
+  # Database service for SanteDB iCDR
+  # The database service is where the primary audit database and clinical database will be stored
+  db:
+    image: postgres
+    container_name: sdb-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: santedb
+      POSTGRES_PASSWORD: SanteDB123
+    restart: always
+
+  # SanteDB core iCDR - Using the SanteMPI Image
+  # This service hosts the iCDR primary APIs
+  santedb:
+    image: santesuite/santedb-mpi:latest
+    container_name: santedb-mpi
+    environment:
+      # Features Enabled in the Docker Container (see: https://help.santesuite.org/installation/installation/santedb-server/installation-using-appliances/docker-containers/feature-configuration)
+      #   LOG -> Enable Logging
+      #   DATA_POLICY -> Enable Data privacy filtering based on policy
+      #   AUDIT_REPO -> Enable the internal Audit Repository Database
+      #   ADO -> Use ADO.NET Storage (PostgreSQL)
+      #   PUBSUB_ADO -> Track Pub/Sub Subscription metadata in ADO.NET database
+      #   RAMCACHE -> Use the in-process memory cache
+      #   SEC -> Add default security services
+      #   SWAGGER -> Expose OpenAPI documentation
+      #   OPENID -> Enable the OpenID IDP
+      #   FHIR -> Enable HL7 FHIR REST API
+      #   FHIR_AUDIT -> Enable the sending of audits via a FHIR dispatcher
+      #   HL7 -> Enable HL7v2 Interfaces
+      #   HDSI -> Enable the core Health Data Service Interface
+      #   AMI -> Enable the Administration and Management Interface
+      #   BIS -> Enable the Business Intelligence Service
+      #   MDM -> Enable Master Data Management
+      #   MATCHING -> Enable the SanteMatch plugins
+      #   IHE_PIXM -> Enable IHE PIXm operation on FHIR endpoint
+      #   IHE_PDQM -> Enable the IHE PDQm extensions
+      #   IHE_PMIT -> Enable PMIR publish/subscribe and PMIR operations 
+      #   IHE_PIX -> Enable HL7v2 IHE PIX Manager
+      #   IHE_PDQ -> Enable HL7v2 IHE PDQ Supplier
+      - SDB_FEATURE=LOG;DATA_POLICY;AUDIT_REPO;ADO;PUBSUB_ADO;RAMCACHE;SEC;SWAGGER;OPENID;FHIR;FHIR_AUDIT;HL7;HDSI;AMI;BIS;MDM;MATCHING;IHE_PIXM;IHE_PDQM;IHE_PMIR;IHE_PIX;IHE_PDQ
+      # HL7v2 Messages should use MSH-8 secrets for authentication
+      - SDB_HL7_AUTHENTICATION=Msh8
+      # Matching mode should be weighted (alternate is SIMPLE)
+      - SDB_MATCHING_MODE=WEIGHTED
+      # Resources under MDM control:
+      #   - Patient
+      - SDB_MDM_RESOURCE=Patient
+      # Primary database connection string for CDR data
+      - SDB_DB_MAIN=server=sdb-postgres;port=5432; database=santedb; user id=santedb; password=SanteDB123; pooling=true; MinPoolSize=5; MaxPoolSize=15; Timeout=60;
+      # Database connection for audit repository
+      - SDB_DB_AUDIT=server=sdb-postgres;port=5432; database=auditdb; user id=santedb; password=SanteDB123; pooling=true; MinPoolSize=5; MaxPoolSize=15; Timeout=60;
+      # ADO provider for main database
+      - SDB_DB_MAIN_PROVIDER=Npgsql
+      # ADO provider for audit database
+      - SDB_DB_AUDIT_PROVIDER=Npgsql
+      # When sensitive data is being disclosed - hide it
+      # Other options are:
+      #   Audit -> Disclose and raise an audit
+      #   None -> Take no action
+      #   Redact -> Redact/censor the information
+      - SDB_DATA_POLICY_ACTION=HIDE
+      # Wait 5 seocnds for database to become available before starting up
+      - SDB_DELAY_START=5000
+    ports:
+      # Expose the API on Port 8080
+      - "8080:8080"
+      # Expose the HL7v2 interface on port 2100
+      - "2100:2100"
+    depends_on:
+      - db
+    restart: always
+    volumes:
+         - santedb-data:/santedb
+
+  # SanteDB Web Access Gateway (see: https://help.santesuite.org/installation/installation/disconnected-gateway/installing-web-access-gateway#using-docker-containers)
+  # This service hosts the WWW
+  www:
+    image: santesuite/santedb-www:latest
+    container_name: santedb-www
+    ports:
+      - "9200:9200"
+    depends_on:
+      - santedb
+    restart: always
+
+volumes: 
+  santedb-data:
