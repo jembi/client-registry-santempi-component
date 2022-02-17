@@ -1,0 +1,22 @@
+version: "3.3"
+
+services:
+  # Database service for SanteDB iCDR
+  # The database service is where the primary audit database and clinical database will be stored
+  postgres-santedb:
+    ports: 
+      - "5432:5432"
+  # SanteDB core iCDR - Using the SanteMPI Image
+  # This service hosts the iCDR primary APIs
+  sante-mpi:
+    ports:
+      # Expose the API on Port 8080
+      - "8080:8080"
+      # Expose the HL7v2 interface on port 2100
+      - "2100:2100"
+
+  # SanteDB Web Access Gateway (see: https://help.santesuite.org/installation/installation/disconnected-gateway/installing-web-access-gateway#using-docker-containers)
+  # This service hosts the WWW
+  sante-mpi-console:
+    ports:
+      - "9200:9200"
