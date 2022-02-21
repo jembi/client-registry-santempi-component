@@ -51,7 +51,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.name==node-1"
+          - "node.labels.name==node-2"
 
   # SanteDB Web Access Gateway (see: https://help.santesuite.org/installation/installation/disconnected-gateway/installing-web-access-gateway#using-docker-containers)
   # This service hosts the WWW
@@ -59,6 +59,10 @@ services:
     image: santesuite/santedb-www:2.1.161
     depends_on:
       - sante-mpi
+  deploy:
+      placement:
+        constraints:
+          - "node.labels.name==node-3"
 
 volumes: 
   santedb-data:
