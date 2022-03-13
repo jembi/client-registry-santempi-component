@@ -1,24 +1,16 @@
 version: "3.3"
 
 services:
-  # Database service for SanteDB iCDR
-  # The database service is where the primary audit database and clinical database will be stored
-  postgres-santedb:
-    image: postgres:14.1
+  santedb-postgres:
+    image: postgres
     environment:
       POSTGRES_USER: santedb
-      POSTGRES_PASSWORD: SanteDB123
+      POSTGRES_PASSWORD: santedb
     volumes:
-      - "sante-postgres-data:/var/lib/postgresql/data"
-    deploy:
-      placement:
-        constraints:
-          - "node.labels.name==node-1"
+      - "santedb-postgres-data:/var/lib/postgresql/data"
 
-  # SanteDB core iCDR - Using the SanteMPI Image
-  # This service hosts the iCDR primary APIs
-  sante-mpi:
-    image: santesuite/santedb-mpi:2.1.161
+  santedb-mpi:
+    image: santesuite/santedb-mpi:latest
     environment:
       - SDB_FEATURE=LOG;DATA_POLICY;AUDIT_REPO;ADO;PUBSUB_ADO;RAMCACHE;SEC;SWAGGER;OPENID;FHIR;HL7;HDSI;AMI;BIS;MDM;MATCHING;IHE_PIXM;IHE_PDQM;IHE_PMIR;IHE_PIX;IHE_PDQ
       # HL7v2 Messages should use MSH-8 secrets for authentication
@@ -29,9 +21,9 @@ services:
       #   - Patient
       - SDB_MDM_RESOURCE=Patient
       # Primary database connection string for CDR data
-      - SDB_DB_MAIN=server=sdb-postgres;port=5432; database=santedb; user id=santedb; password=SanteDB123; pooling=true; MinPoolSize=5; MaxPoolSize=15; Timeout=60;
+      - SDB_DB_MAIN=server=santedb-postgres;port=5432; database=santedb; user id=santedb; password=santedb; pooling=true; MinPoolSize=5; MaxPoolSize=15; Timeout=60;
       # Database connection for audit repository
-      - SDB_DB_AUDIT=server=sdb-postgres;port=5432; database=auditdb; user id=santedb; password=SanteDB123; pooling=true; MinPoolSize=5; MaxPoolSize=15; Timeout=60;
+      - SDB_DB_AUDIT=server=santedb-postgres;port=5432; database=auditdb; user id=santedb; password=santedb; pooling=true; MinPoolSize=5; MaxPoolSize=15; Timeout=60;
       # ADO provider for main database
       - SDB_DB_MAIN_PROVIDER=Npgsql
       # ADO provider for audit database
@@ -45,25 +37,19 @@ services:
       # Wait 5 seocnds for database to become available before starting up
       - SDB_DELAY_START=5000
     depends_on:
-      - postgres-santedb
+      - santedb-postgres
     volumes:
          - santedb-data:/santedb
-    deploy:
-      placement:
-        constraints:
-          - "node.labels.name==node-2"
 
-  # SanteDB Web Access Gateway (see: https://help.santesuite.org/installation/installation/disconnected-gateway/installing-web-access-gateway#using-docker-containers)
-  # This service hosts the WWW
-  sante-mpi-console:
-    image: santesuite/santedb-www:2.1.161
+  santedb-www:
+    image: santesuite/santedb-www:latest
     depends_on:
-      - sante-mpi
-  deploy:
-      placement:
-        constraints:
-          - "node.labels.name==node-3"
+      - santedb-mpi
+  # deploy:
+  #     placement:
+  #       constraints:
+  #         - "node.labels.name==node-3"
 
 volumes: 
   santedb-data:
-  sante-postgres-data:
+  santedb-postgres-data:

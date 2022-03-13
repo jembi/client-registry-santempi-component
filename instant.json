@@ -1,7 +1,7 @@
 {
   "id": "client-registry-santempi",
   "name": "Client Registry SanteMPI",
-  "description": "blah blah",
+  "description": "Client Registry SanteMPI",
   "version": "1.0.0",
   "environmentVariables": {
   }
